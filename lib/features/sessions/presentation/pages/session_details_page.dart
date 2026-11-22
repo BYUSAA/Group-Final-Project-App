@@ -94,7 +94,8 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
     final date = selectedSession.startAt == null
         ? '${selectedSession.day} ${selectedSession.date}'
         : '${_weekday(selectedSession.startAt!)} ${selectedSession.startAt!.day} ${_month(selectedSession.startAt!.month)} ${selectedSession.startAt!.year}';
-    final isConfirmed = selectedSession.status == 'confirmed' && selectedSession.isUpcoming;
+    final isConfirmed =
+        selectedSession.status == 'confirmed' && selectedSession.isUpcoming;
 
     return Scaffold(
       backgroundColor: AppColors.background,

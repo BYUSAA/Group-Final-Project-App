@@ -384,8 +384,7 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   }
 
   Future<void> loadSessionById(String sessionId) async {
-    final existing =
-        state.sessions.where((session) => session.id == sessionId);
+    final existing = state.sessions.where((session) => session.id == sessionId);
     if (existing.isNotEmpty) {
       selectSession(existing.first);
       return;

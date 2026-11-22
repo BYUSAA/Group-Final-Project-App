@@ -112,7 +112,6 @@ class BookingConfirmationPage extends ConsumerWidget {
       ),
     );
   }
-
 }
 
 class _DetailRow extends StatelessWidget {
