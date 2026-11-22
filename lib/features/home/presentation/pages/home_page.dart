@@ -65,21 +65,38 @@ class HomePage extends ConsumerWidget {
                     const Icon(Icons.search_rounded,
                         color: AppColors.textSecondary),
                     const SizedBox(width: 12),
-                    Text('What are you stuck on?',
-                        style: AppTextStyles.body
-                            .copyWith(color: AppColors.textSecondary))
+                    Expanded(
+                        child: Text(
+                      'What are you stuck on?',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body
+                          .copyWith(color: AppColors.textSecondary),
+                    ))
                   ]),
                 ),
               ),
               const SizedBox(height: 22),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                const Text('Your next session', style: AppTextStyles.section),
+              Row(children: [
+                const Expanded(
+                    child: Text(
+                  'Your next session',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.section,
+                )),
                 TextButton(
-                    onPressed: () => context.go('/sessions'),
-                    child: const Text('See all',
-                        style: TextStyle(
-                            color: AppColors.green,
-                            fontWeight: FontWeight.w700))),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(56, 44),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => context.go('/sessions'),
+                  child: const Text('See all',
+                      style: TextStyle(
+                          color: AppColors.green,
+                          fontWeight: FontWeight.w700)),
+                ),
               ]),
               if (nextSession == null)
                 AppCard(
