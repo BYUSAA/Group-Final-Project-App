@@ -17,13 +17,3 @@ key.properties
 !/gradle/wrapper/gradle-wrapper.jar
 !/gradlew
 !/gradlew.bat
-
-# Keep the Gradle wrapper in source control for reproducible builds.
-!/gradle/wrapper/gradle-wrapper.jar
-!/gradlew
-!/gradlew.bat
-
-# Keep the Gradle wrapper in source control for reproducible builds.
-!/gradle/wrapper/gradle-wrapper.jar
-!/gradlew
-!/gradlew.bat

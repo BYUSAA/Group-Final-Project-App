@@ -27,13 +27,15 @@ jobs:
           if [ ! -f android/gradlew ]; then
             flutter create --platforms=android --org com.studylink --project-name studylink .
           fi
-          {
-            echo ""
-            echo "# Keep the Gradle wrapper in source control for reproducible builds."
-            echo "!/gradle/wrapper/gradle-wrapper.jar"
-            echo "!/gradlew"
-            echo "!/gradlew.bat"
-          } >> android/.gitignore
+          if ! grep -q "Keep the Gradle wrapper in source control" android/.gitignore; then
+            {
+              echo ""
+              echo "# Keep the Gradle wrapper in source control for reproducible builds."
+              echo "!/gradle/wrapper/gradle-wrapper.jar"
+              echo "!/gradlew"
+              echo "!/gradlew.bat"
+            } >> android/.gitignore
+          fi
       - name: Install dependencies
         run: flutter pub get
       - name: Apply Dart fixes and format sources
@@ -41,7 +43,7 @@ jobs:
           dart fix --apply --code=migrate_design_widgets
           dart fix --apply
           dart format .
-          git add -A android lib test integration_test pubspec.yaml
+          git add -A android lib test integration_test pubspec.yaml pubspec.lock
           for wrapper in android/gradlew android/gradlew.bat android/gradle/wrapper/gradle-wrapper.jar; do
             if [ -f "$wrapper" ]; then git add -f "$wrapper"; fi
           done
