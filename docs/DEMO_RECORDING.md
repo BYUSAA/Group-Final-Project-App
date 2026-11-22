@@ -1,20 +1,27 @@
-# StudyLink demonstration recording checklist
+# StudyLink demonstration recording
 
-The final demonstration video must be recorded from the built application on an Android emulator or physical device. No video is included in this source commit because a verified APK and capture device are not available in this environment.
+The Android evidence workflow runs the app on a Pixel 7 emulator, follows the main UI journey and records the device screen. On a successful run, it commits the recording to:
 
-## Suggested recording sequence
+- `docs/demo/studylink-demo.mp4`
 
-1. Start with the app fully closed.
-2. Begin the recording and cold-launch StudyLink.
-3. Show the Sign In screen and sign in with a test account.
-4. Open Home, then Search Subjects.
-5. Search for a subject and open the Tutor Results screen.
-6. Open a tutor profile and view available time slots.
-7. Select a date, time and meeting mode, then confirm a booking.
-8. Open My Sessions and display the new booking.
-9. Open Session Details and demonstrate the details for that exact session.
-10. Show the cancellation confirmation without cancelling a real user booking.
-11. Return and show the Rate Session screen using a completed test session.
-12. Rotate the device once to landscape and show the layout adapting without overflow.
+It also captures the screen states listed in [the screenshots folder](screenshots/README.md). The workflow is defined in `.github/workflows/studylink_android_evidence.yml`.
 
-Use test accounts and seeded demo data. Do not record passwords, API keys, private user data or real booking details. Keep the Figma comparison and test credentials outside the recording unless the assessor asks for them.
+## Recorded sequence
+
+1. Sign In
+2. Sign Up
+3. Home
+4. Search Subjects
+5. Tutor Results
+6. Tutor Profile
+7. Available Time Slots
+8. Booking Confirmation
+9. My Sessions
+10. Session Details
+11. Rate Session
+
+## Important limitation
+
+The automated recording uses the local sample-preview repository and a fake authentication repository. It is suitable for demonstrating the navigation and UI screens without exposing private data. It is **not** evidence that the real Firebase project is configured or that live authentication, Firestore reads, booking transactions or ratings have been tested.
+
+For a live-backend demonstration, first complete the steps in [Firebase setup](../firebase/README.md), seed non-sensitive demo records, and record a separate run with the team's test account. Never record passwords, private user information, API keys or real booking details.

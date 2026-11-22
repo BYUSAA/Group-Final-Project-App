@@ -1,0 +1,85 @@
+name: StudyLink Android evidence
+
+on:
+  push:
+    branches: [byusa-work]
+    paths:
+      - '.github/workflows/studylink_android_evidence.yml'
+      - 'integration_test/**'
+      - 'test_driver/**'
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'android/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture-android-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Enable Android emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=/dev/kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run UI journey, capture screenshots and record demo
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          script: |
+            mkdir -p docs/screenshots docs/demo
+            adb shell 'settings put global window_animation_scale 0'
+            adb shell 'settings put global transition_animation_scale 0'
+            adb shell 'settings put global animator_duration_scale 0'
+            adb shell 'screenrecord --time-limit 180 --size 720x1280 --bit-rate 3000000 /sdcard/studylink-demo.mp4 >/dev/null 2>&1 &'
+            sleep 2
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_flow_test.dart -d emulator-5554
+            adb shell 'kill -2 "$(pidof screenrecord)" 2>/dev/null || true'
+            sleep 3
+            adb pull /sdcard/studylink-demo.mp4 docs/demo/studylink-demo.mp4
+            test -s docs/demo/studylink-demo.mp4
+            test "$(find docs/screenshots -maxdepth 1 -name "*.png" | wc -l)" -eq 11
+
+      - name: Upload screenshot and video evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studylink-android-evidence
+          path: |
+            docs/screenshots/*.png
+            docs/demo/studylink-demo.mp4
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit generated evidence to byusa-work
+        if: success() && github.ref_name == 'byusa-work'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/*.png docs/demo/studylink-demo.mp4
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: add Android StudyLink screenshots and demo recording"
+            git push origin HEAD:byusa-work
+          fi
