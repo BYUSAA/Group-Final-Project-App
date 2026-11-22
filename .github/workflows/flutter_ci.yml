@@ -27,8 +27,18 @@ jobs:
           if [ ! -f android/gradlew ]; then
             flutter create --platforms=android --org com.studylink --project-name studylink .
           fi
+          {
+            echo ""
+            echo "# Keep the Gradle wrapper in source control for reproducible builds."
+            echo "!/gradle/wrapper/gradle-wrapper.jar"
+            echo "!/gradlew"
+            echo "!/gradlew.bat"
+          } >> android/.gitignore
           dart format .
           git add -A android lib test integration_test
+          for wrapper in android/gradlew android/gradlew.bat android/gradle/wrapper/gradle-wrapper.jar; do
+            if [ -f "$wrapper" ]; then git add -f "$wrapper"; fi
+          done
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
