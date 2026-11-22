@@ -90,10 +90,11 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
       );
     }
 
-    final date = session.startAt == null
-        ? '${session.day} ${session.date}'
-        : '${_weekday(session.startAt!)} ${session.startAt!.day} ${_month(session.startAt!.month)} ${session.startAt!.year}';
-    final isConfirmed = session.status == 'confirmed' && session.isUpcoming;
+    final selectedSession = session;
+    final date = selectedSession.startAt == null
+        ? '${selectedSession.day} ${selectedSession.date}'
+        : '${_weekday(selectedSession.startAt!)} ${selectedSession.startAt!.day} ${_month(selectedSession.startAt!.month)} ${selectedSession.startAt!.year}';
+    final isConfirmed = selectedSession.status == 'confirmed' && selectedSession.isUpcoming;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -123,13 +124,13 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                     ? AppColors.mint
                                     : AppColors.surfaceSoft,
                                 borderRadius: BorderRadius.circular(22)),
-                            child: Text(session.status.toUpperCase(),
+                            child: Text(selectedSession.status.toUpperCase(),
                                 style: const TextStyle(
                                     color: AppColors.greenDark,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700))),
                         const SizedBox(height: 8),
-                        Text(session.subject,
+                        Text(selectedSession.subject,
                             style: AppTextStyles.title.copyWith(fontSize: 24)),
                         const SizedBox(height: 17),
                         AppCard(
@@ -139,7 +140,7 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                 children: [
                                   Row(children: [
                                     InitialsAvatar(
-                                        initials: session.initials,
+                                        initials: selectedSession.initials,
                                         backgroundColor: AppColors.beigeAvatar,
                                         size: 46),
                                     const SizedBox(width: 11),
@@ -148,7 +149,7 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                          Text(session.tutorName,
+                                          Text(selectedSession.tutorName,
                                               style: const TextStyle(
                                                   color: AppColors.text,
                                                   fontSize: 14,
@@ -157,7 +158,7 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                           const Text('Your peer tutor',
                                               style: AppTextStyles.caption),
                                         ])),
-                                    if (session.tutorId.isNotEmpty)
+                                    if (selectedSession.tutorId.isNotEmpty)
                                       TextButton(
                                         onPressed: () async {
                                           try {
@@ -165,7 +166,7 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                                 .read(
                                                     studyLinkProvider.notifier)
                                                 .loadTutorProfile(
-                                                    session.tutorId);
+                                                    selectedSession.tutorId);
                                             if (context.mounted)
                                               context.push('/tutor-profile');
                                           } catch (error) {
@@ -192,14 +193,14 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                       icon: Icons.calendar_today_outlined,
                                       title: date,
                                       subtitle:
-                                          '${session.time} · 45-minute session'),
+                                          '${selectedSession.time} · 45-minute session'),
                                   const SizedBox(height: 13),
                                   _SessionInfo(
                                       icon: Icons.location_on_outlined,
-                                      title: session.mode == 'Online'
+                                      title: selectedSession.mode == 'Online'
                                           ? 'Online session'
-                                          : session.location,
-                                      subtitle: session.mode == 'Online'
+                                          : selectedSession.location,
+                                      subtitle: selectedSession.mode == 'Online'
                                           ? 'Online'
                                           : 'ALU Kigali campus'),
                                 ])),
@@ -210,9 +211,9 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                         AppCard(
                             padding: const EdgeInsets.all(13),
                             child: Text(
-                              session.note.isEmpty
-                                  ? 'No private note was added for this session.'
-                                  : session.note,
+                              selectedSession.note.isEmpty
+                                  ? 'No private note was added for this selectedSession.'
+                                  : selectedSession.note,
                               style: AppTextStyles.body,
                             )),
                       ]),
@@ -240,7 +241,7 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () =>
-                              _showCancelSheet(context, ref, session),
+                              _showCancelSheet(context, ref, selectedSession),
                           style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.danger,
                               side: const BorderSide(

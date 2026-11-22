@@ -113,7 +113,6 @@ class BookingConfirmationPage extends ConsumerWidget {
     );
   }
 
-  String _endTime(String start) => '${start.split(':').first}:45';
 }
 
 class _DetailRow extends StatelessWidget {

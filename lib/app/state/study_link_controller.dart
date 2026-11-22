@@ -383,6 +383,26 @@ class StudyLinkController extends Notifier<StudyLinkState> {
     }
   }
 
+  Future<void> loadSessionById(String sessionId) async {
+    final existing =
+        state.sessions.where((session) => session.id == sessionId);
+    if (existing.isNotEmpty) {
+      selectSession(existing.first);
+      return;
+    }
+    final session = await _repository.getSession(sessionId);
+    state = state.copyWith(
+      sessions: [...state.sessions, session],
+      selectedSessionId: sessionId,
+      clearError: true,
+    );
+  }
+
+  Future<void> loadTutorProfile(String tutorId) async {
+    final tutor = await _repository.getTutorProfile(tutorId);
+    state = state.copyWith(selectedTutor: tutor, clearError: true);
+  }
+
   Future<void> cancelSession(String sessionId) async {
     final selected = state.sessions.where((session) => session.id == sessionId);
     if (selected.isEmpty) throw StateError('This session could not be found.');
