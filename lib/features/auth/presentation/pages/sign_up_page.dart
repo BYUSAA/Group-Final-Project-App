@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -175,10 +175,11 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                                                 onChanged: _submitting
                                                     ? null
                                                     : (value) {
-                                                        if (value != null)
+                                                        if (value != null) {
                                                           setState(() =>
                                                               _programme =
                                                                   value);
+                                                        }
                                                       },
                                               ),
                                             ])),
@@ -219,9 +220,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                                                 onChanged: _submitting
                                                     ? null
                                                     : (value) {
-                                                        if (value != null)
+                                                        if (value != null) {
                                                           setState(() =>
                                                               _year = value);
+                                                        }
                                                       },
                                               ),
                                             ])),

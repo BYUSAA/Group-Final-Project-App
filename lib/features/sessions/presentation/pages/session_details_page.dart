@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -168,14 +168,16 @@ class _SessionDetailsPageState extends ConsumerState<SessionDetailsPage> {
                                                     studyLinkProvider.notifier)
                                                 .loadTutorProfile(
                                                     selectedSession.tutorId);
-                                            if (context.mounted)
+                                            if (context.mounted) {
                                               context.push('/tutor-profile');
+                                            }
                                           } catch (error) {
-                                            if (context.mounted)
+                                            if (context.mounted) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
                                                       content: Text(
                                                           error.toString())));
+                                            }
                                           }
                                         },
                                         child: const Text('Profile',

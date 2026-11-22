@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/models/study_link_models.dart';
 
@@ -24,8 +24,9 @@ class StudyLinkRepository {
 
   User get _currentUser {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null)
+    if (user == null) {
       throw StateError('Please sign in again before continuing.');
+    }
     return user;
   }
 
@@ -139,8 +140,9 @@ class StudyLinkRepository {
           orElse: () => sampleKevin);
     }
     final tutorDoc = await _db.collection('tutors').doc(tutorId).get();
-    if (!tutorDoc.exists)
+    if (!tutorDoc.exists) {
       throw StateError('This tutor profile is no longer available.');
+    }
     final data = tutorDoc.data() ?? const <String, dynamic>{};
     final userDoc = await _db.collection('users').doc(tutorId).get();
     final user = userDoc.data() ?? const <String, dynamic>{};
@@ -329,12 +331,15 @@ class StudyLinkRepository {
     await _db.runTransaction((transaction) async {
       final snapshot = await transaction.get(sessionRef);
       final data = snapshot.data();
-      if (!snapshot.exists || data == null)
+      if (!snapshot.exists || data == null) {
         throw StateError('This session no longer exists.');
-      if (data['studentId'] != user.uid)
+      }
+      if (data['studentId'] != user.uid) {
         throw StateError('You cannot cancel another student\'s session.');
-      if (data['status'] != 'confirmed')
+      }
+      if (data['status'] != 'confirmed') {
         throw StateError('Only a confirmed session can be cancelled.');
+      }
       final slotId = (data['slotId'] ?? '').toString();
       final tutorId = (data['tutorId'] ?? '').toString();
       final slotRef = _db
@@ -369,14 +374,18 @@ class StudyLinkRepository {
     await _db.runTransaction((transaction) async {
       final snapshot = await transaction.get(sessionRef);
       final data = snapshot.data();
-      if (!snapshot.exists || data == null)
+      if (!snapshot.exists || data == null) {
         throw StateError('This session could not be found.');
-      if (data['studentId'] != user.uid)
+      }
+      if (data['studentId'] != user.uid) {
         throw StateError('You cannot rate another student\'s session.');
-      if (data['status'] != 'completed')
+      }
+      if (data['status'] != 'completed') {
         throw StateError('You can rate a session after it has been completed.');
-      if (data['rating'] != null)
+      }
+      if (data['rating'] != null) {
         throw StateError('You have already rated this session.');
+      }
       final tutorId = (data['tutorId'] ?? '').toString();
       transaction.set(ratingRef, {
         'sessionId': sessionId,

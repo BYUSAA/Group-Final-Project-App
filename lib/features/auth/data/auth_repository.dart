@@ -82,8 +82,9 @@ class FirebaseAuthRepository implements AuthRepository {
       password: password,
     );
     final user = credential.user;
-    if (user == null)
+    if (user == null) {
       throw StateError('Account creation did not return a user.');
+    }
     await user.updateDisplayName(name.trim());
     final profile = <String, dynamic>{
       'uid': user.uid,

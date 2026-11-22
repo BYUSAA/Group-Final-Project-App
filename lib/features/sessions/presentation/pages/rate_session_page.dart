@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -49,9 +49,10 @@ class _RateSessionPageState extends ConsumerState<RateSessionPage> {
               .read(studyLinkProvider.notifier)
               .loadSessionById(widget.sessionId);
         } catch (error) {
-          if (mounted)
+          if (mounted) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(error.toString())));
+          }
         } finally {
           if (mounted) setState(() => _loading = false);
         }
@@ -90,9 +91,10 @@ class _RateSessionPageState extends ConsumerState<RateSessionPage> {
       session = state.selectedSession;
     }
 
-    if (_loading)
+    if (_loading) {
       return const Scaffold(
           body: SafeArea(child: Center(child: LoadingIndicator())));
+    }
     if (session == null) {
       return Scaffold(
         backgroundColor: AppColors.background,

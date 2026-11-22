@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/state/study_link_controller.dart';
@@ -94,13 +94,13 @@ class TutorProfilePage extends ConsumerWidget {
                             style: AppTextStyles.body
                                 .copyWith(fontSize: 14, height: 1.55)),
                         const SizedBox(height: 21),
-                        Row(children: [
+                        const Row(children: [
                           Expanded(
                               child: _InfoCard(
                                   title: 'Session length',
                                   value: '45 minutes')),
-                          const SizedBox(width: 10),
-                          const Expanded(
+                          SizedBox(width: 10),
+                          Expanded(
                               child: _InfoCard(
                                   title: 'Meets', value: 'Campus or online')),
                         ]),

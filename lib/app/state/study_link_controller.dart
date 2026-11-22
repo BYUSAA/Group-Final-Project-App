@@ -419,10 +419,12 @@ class StudyLinkController extends Notifier<StudyLinkState> {
     final selected = state.sessions.where((session) => session.id == sessionId);
     if (selected.isEmpty) throw StateError('This session could not be found.');
     final session = selected.first;
-    if (session.status != 'completed')
+    if (session.status != 'completed') {
       throw StateError('You can rate a session after it has been completed.');
-    if (session.isRated)
+    }
+    if (session.isRated) {
       throw StateError('This session has already been rated.');
+    }
     final tags = [...state.feedbackTags, 'Helped: ${state.unstuckAnswer}'];
     await _repository.submitRating(
       sessionId: sessionId,
@@ -443,10 +445,12 @@ class StudyLinkController extends Notifier<StudyLinkState> {
         .toString()
         .replaceFirst('Exception: ', '')
         .replaceFirst('Bad state: ', '');
-    if (message.contains('permission-denied'))
+    if (message.contains('permission-denied')) {
       return 'You do not have permission to perform this action.';
-    if (message.contains('network'))
+    }
+    if (message.contains('network')) {
       return 'A network error occurred. Check your connection and try again.';
+    }
     return message;
   }
 
