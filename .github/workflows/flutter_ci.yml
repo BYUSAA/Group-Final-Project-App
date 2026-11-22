@@ -22,7 +22,7 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Generate Android runner and format Dart sources
+      - name: Generate Android runner
         run: |
           if [ ! -f android/gradlew ]; then
             flutter create --platforms=android --org com.studylink --project-name studylink .
@@ -34,23 +34,27 @@ jobs:
             echo "!/gradlew"
             echo "!/gradlew.bat"
           } >> android/.gitignore
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Apply Dart fixes and format sources
+        run: |
+          dart fix --apply --code=migrate_design_widgets
+          dart fix --apply
           dart format .
-          git add -A android lib test integration_test
+          git add -A android lib test integration_test pubspec.yaml
           for wrapper in android/gradlew android/gradlew.bat android/gradle/wrapper/gradle-wrapper.jar; do
             if [ -f "$wrapper" ]; then git add -f "$wrapper"; fi
           done
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Generate Android runner and format Dart sources"
+            git commit -m "Migrate Material UI imports and format Dart sources"
             if [ "$GITHUB_EVENT_NAME" = "push" ]; then
               git push origin "HEAD:${{ github.ref_name }}"
             fi
           fi
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
-      - name: Install dependencies
-        run: flutter pub get
       - name: Analyze
         run: flutter analyze
       - name: Unit and widget tests
