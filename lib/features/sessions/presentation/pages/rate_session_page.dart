@@ -13,6 +13,8 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../domain/usecases/get_session_details.dart';
+import '../bloc/my_sessions/my_sessions_bloc.dart';
+import '../bloc/my_sessions/my_sessions_event.dart';
 import '../bloc/rating/rating_bloc.dart';
 import '../bloc/rating/rating_event.dart';
 import '../bloc/rating/rating_state.dart';
@@ -24,11 +26,18 @@ class RateSessionPage extends StatefulWidget {
   State<RateSessionPage> createState() => _RateSessionPageState();
 }
 class _RateSessionPageState extends State<RateSessionPage> {
+  late final Future<Session> _sessionFuture;
   int _rating = 4;
   String _unstuck = 'Yes';
   final Set<String> _tags = {'Clear explanations'};
   final _comment = TextEditingController();
   static const options = ['Clear explanations','Patient','On time','Well prepared','Easy to ask questions'];
+
+  @override
+  void initState() {
+    super.initState();
+    _sessionFuture = GetSessionDetails(sl<SessionRepository>())(widget.sessionId);
+  }
   @override
   void dispose() { _comment.dispose(); super.dispose(); }
 
@@ -38,7 +47,7 @@ class _RateSessionPageState extends State<RateSessionPage> {
     body: SafeArea(child: Center(child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 520),
       child: FutureBuilder<Session>(
-        future: GetSessionDetails(sl<SessionRepository>())(widget.sessionId),
+        future: _sessionFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator(color: AppColors.green));
           if (snapshot.hasError || !snapshot.hasData) return Center(child: Text(snapshot.error?.toString() ?? 'Session not found.'));
@@ -46,6 +55,10 @@ class _RateSessionPageState extends State<RateSessionPage> {
           return BlocConsumer<RatingBloc, RatingState>(
             listener: (context, state) {
               if (state.status == RatingStatus.success) {
+                final auth = context.read<AuthBloc>().state;
+                if (auth is AuthAuthenticated) {
+                  context.read<MySessionsBloc>().add(MySessionsRequested(auth.user.uid));
+                }
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message ?? 'Thank you for your feedback.')));
                 context.go('/sessions');
               }
