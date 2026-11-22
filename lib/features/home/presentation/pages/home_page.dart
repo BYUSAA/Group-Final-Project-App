@@ -94,8 +94,7 @@ class HomePage extends ConsumerWidget {
                   onPressed: () => context.go('/sessions'),
                   child: const Text('See all',
                       style: TextStyle(
-                          color: AppColors.green,
-                          fontWeight: FontWeight.w700)),
+                          color: AppColors.green, fontWeight: FontWeight.w700)),
                 ),
               ]),
               if (nextSession == null)
