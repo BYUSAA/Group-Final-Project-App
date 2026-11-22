@@ -18,7 +18,7 @@ The active implementation uses **Riverpod** for shared application state, **GoRo
 - Rate Session
 - Cancel Session confirmation sheet
 
-The screen layout and colour tokens continue to follow the supplied StudyLink Figma prototype. Navigation keeps the selected tutor and session IDs so details, cancellation and rating actions target the correct records.
+The screen layout and colour tokens continue to follow the supplied StudyLink Figma design direction. Navigation keeps the selected tutor and session IDs so details, cancellation and rating actions target the correct records.
 
 ## Main user flow
 
@@ -51,9 +51,9 @@ flutter create --platforms=android --org com.studylink --project-name studylink 
 
 ## Firebase setup
 
-The repository intentionally does not contain Firebase credentials. Configure a Firebase project, enable Email/Password sign-in, create Firestore, seed the required collections and deploy the security rules/indexes.
+The repository intentionally does not contain project credentials. Configure the team's Firebase project, enable Email/Password sign-in, create Firestore, seed the required collections and deploy reviewed rules and indexes.
 
-Run the app with the Firebase client values supplied from the team's project:
+Run the app with the team's Firebase client values supplied as documented in [Firebase setup](firebase/README.md):
 
 ```bash
 flutter run \
@@ -64,7 +64,7 @@ flutter run \
   --dart-define=FIREBASE_STORAGE_BUCKET=YOUR_STORAGE_BUCKET
 ```
 
-These are Firebase client configuration values, not service-account credentials. Do not commit service-account JSON or private keys. With no Firebase values, the application remains buildable and uses sample records for UI previews/tests, but live sign-in and remote data operations are unavailable.
+These are Firebase client configuration values, not service-account credentials. With no Firebase values, the app remains buildable and uses local sample records for UI previews/tests, but live sign-in and remote data operations are unavailable.
 
 See [Firebase setup](firebase/README.md) and [Firestore schema](docs/firestore_schema.md).
 
@@ -78,6 +78,10 @@ flutter build apk --debug
 ```
 
 GitHub Actions runs formatting verification, analysis, tests and an Android debug build. A successful CI run uploads `studylink-debug-apk` as a workflow artifact.
+
+## Android screenshots and demo
+
+The separate [StudyLink Android evidence workflow](.github/workflows/studylink_android_evidence.yml) runs an emulator journey, captures the main screens into `docs/screenshots/` and records `docs/demo/studylink-demo.mp4`. It uses local sample records and fake authentication, so it verifies presentation and navigation rather than live Firebase. Details are in [the screenshot guide](docs/screenshots/README.md).
 
 ## Repository structure
 
@@ -109,25 +113,27 @@ lib/
   shared/widgets/
 test/
 integration_test/
+test_driver/
 docs/
 firebase/
 ```
 
 ## Known limitations
 
-- The team must provide its Firebase project configuration before live authentication and Firestore operations can be used.
-- Production Firestore data must be seeded using the documented schema, and the backend team must validate the security rules against its final schema.
-- Tutor availability, sessions and ratings depend on the backend records being populated with the required fields.
-- The repository's Figma source could not be loaded in the current review environment. Final pixel-by-pixel verification must be completed against the team's accessible Figma file on target devices.
-- A device-recorded demo video and screenshots must be captured from the running app for final submission.
+- The team must provide its Firebase client configuration before live authentication and Firestore operations can be used.
+- Firestore must be seeded with subjects, tutor profiles and availability records before live search and booking can return real data.
+- The backend team must validate the Firestore rules against its final data model before deployment.
+- Pixel-by-pixel Figma verification is not certified; use the approved file and the manual [Figma review checklist](docs/FIGMA_REVIEW_CHECKLIST.md).
+- The emulator screenshots and demo use sample data and fake authentication. They do not represent a live Firebase session.
+- A release-signed APK requires team-managed signing configuration.
 
 ## Future work
 
-- Add Google sign-in if required by the project brief.
 - Add tutor-side availability management and session completion workflows.
 - Add live updates for availability and session status.
 - Add profile editing, notifications and rescheduling.
-- Add automated screenshot comparisons against approved Figma frames.
+- Add automated screenshot comparison against approved Figma frames.
+- Add Google sign-in only if required by the project brief.
 
 ## Contribution
 

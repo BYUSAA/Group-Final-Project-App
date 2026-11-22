@@ -1,6 +1,8 @@
 # StudyLink Figma comparison checklist
 
-Use the approved StudyLink Figma prototype as the source of truth. The repository UI has been kept within its existing warm-neutral, deep-green, mint, beige and gold design system. This checklist records the manual visual checks still required; it is not a claim that pixel-perfect verification has already passed.
+**Review status: not certified.** The approved prototype is the source of truth. The Figma prototype URL could not be opened in the review environment, and no separate approved reference-frame image files were available in the repository or current task attachments. The Android screenshots are evidence of the app as implemented; they are not proof of pixel-perfect parity.
+
+The repository UI uses the existing warm-neutral, deep-green, mint, beige and gold design direction. Complete this checklist against the approved Figma frames before marking the design as an exact match.
 
 For each screen compare:
 
