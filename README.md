@@ -1,97 +1,134 @@
 # StudyLink — Peer Tutoring Booking App
 
-StudyLink is a Flutter mobile app prototype that helps university students find peers who can explain a course topic, choose an available time, book a 45-minute session and rate the session afterwards.
+StudyLink is a Flutter mobile application that helps ALU students find peer tutors, choose an available 45-minute session, book a time and rate a completed session.
 
-This project currently contains the **Member 3 UI and navigation implementation** based on the supplied StudyLink Figma screenshots. It uses the warm off-white, deep green, mint, beige and gold visual system shown in the prototype.
+The active implementation uses **Riverpod** for shared application state, **GoRouter** for navigation, **Firebase Authentication** for accounts and **Cloud Firestore** for subjects, tutor profiles, availability, bookings and ratings. There is no BLoC/Cubit implementation in the active app.
 
 ## Implemented screens
 
-- Sign In
-- Sign Up
+- Sign In and Sign Up
 - Home
-- Find / Search Subjects
-- Tutor Results
+- Search Subjects
+- Tutor Results and no-results state
 - Tutor Profile
 - Available Time Slots
 - Booking Confirmation
 - My Sessions
 - Session Details
 - Rate Session
-- Cancel Session bottom sheet (opened from Session Details)
+- Cancel Session confirmation sheet
 
-The route flow is managed with `go_router`. Shared UI state is managed with Riverpod; no `setState()` is used for application state. Screen content is scrollable and constrained to a phone-friendly width, with bottom actions kept separate where the prototype shows them.
+The screen layout and colour tokens continue to follow the supplied StudyLink Figma prototype. Navigation keeps the selected tutor and session IDs so details, cancellation and rating actions target the correct records.
+
+## Main user flow
+
+1. Sign in or create an account.
+2. Search active subjects.
+3. Choose a tutor matching the subject.
+4. View available time slots and select a meeting mode.
+5. Confirm the booking. A Firestore transaction checks and reserves the slot while creating the session record.
+6. View upcoming and past sessions.
+7. Open the exact session, cancel it if it is still confirmed, or rate it once it is completed.
 
 ## Requirements
 
-- Flutter SDK with Dart 3.3 or newer
-- Android Studio / Android SDK for Android builds
+- Flutter stable with Dart 3.6+
+- Android Studio and Android SDK for Android builds
+- A Firebase project for live authentication and Firestore data
 
-## Setup
+## Local setup
 
 ```bash
 flutter pub get
+flutter run
 ```
 
-If the repository does not yet contain a generated Android runner (for example, if `android/gradlew` is missing), generate the standard Android platform files from the project root:
+If a generated Android project is missing:
 
 ```bash
 flutter create --platforms=android --org com.studylink --project-name studylink .
 ```
 
-Then run the app on an Android emulator or physical Android device:
+## Firebase setup
+
+The repository intentionally does not contain Firebase credentials. Configure a Firebase project, enable Email/Password sign-in, create Firestore, seed the required collections and deploy the security rules/indexes.
+
+Run the app with the Firebase client values supplied from the team's project:
 
 ```bash
-flutter run
+flutter run \
+  --dart-define=FIREBASE_API_KEY=YOUR_API_KEY \
+  --dart-define=FIREBASE_APP_ID=YOUR_APP_ID \
+  --dart-define=FIREBASE_MESSAGING_SENDER_ID=YOUR_SENDER_ID \
+  --dart-define=FIREBASE_PROJECT_ID=YOUR_PROJECT_ID \
+  --dart-define=FIREBASE_STORAGE_BUCKET=YOUR_STORAGE_BUCKET
 ```
+
+These are Firebase client configuration values, not service-account credentials. Do not commit service-account JSON or private keys. With no Firebase values, the application remains buildable and uses sample records for UI previews/tests, but live sign-in and remote data operations are unavailable.
+
+See [Firebase setup](firebase/README.md) and [Firestore schema](docs/firestore_schema.md).
 
 ## Quality checks
 
 ```bash
 dart format .
 flutter analyze
-flutter test
+flutter test --coverage
 flutter build apk --debug
 ```
 
-A GitHub Actions workflow runs Dart formatting, analysis, tests and a debug Android build on pushes and pull requests.
+GitHub Actions runs formatting verification, analysis, tests and an Android debug build. A successful CI run uploads `studylink-debug-apk` as a workflow artifact.
 
-## UI and backend integration notes
-
-The current screens use local sample tutors and session records to demonstrate the prototype flow. This is deliberate for the Member 3 presentation layer. The sample data is not a claim that Firebase CRUD is already connected. Replace the local controller actions with the group's repository/data-layer implementations when Member 1 (authentication) and Member 2 (Firestore CRUD) integrate their work. Member 4 should align the shared Riverpod state and route guards with the final architecture.
-
-Booking confirmation exposes an availability result path: if the booking service reports that the selected slot is no longer available, the UI stays on the time-selection screen and displays an error. If the service fails, the error is shown without clearing the selected tutor or booking details.
-
-## Repository layout
+## Repository structure
 
 ```text
-.github/workflows/       CI workflow
-android/                 Android platform setup notes (generate runner with flutter create if absent)
-assets/images/           App image assets
-docs/                    UI implementation notes
-firebase/                Firebase integration notes
-integration_test/        Mobile flow test
 lib/
-  app/                   App root, router and state controller
-  core/                  Design tokens and data models
-  features/              Authentication, home and records screens
-  shared/widgets/        Reusable buttons, cards, fields, dialogs and navigation
- test/                   Unit and widget tests
-tooling/scripts/         Local quality-check scripts
+  app/
+    app.dart
+    data/study_link_repository.dart
+    router/app_router.dart
+    state/study_link_controller.dart
+  core/
+    config/firebase_config.dart
+    models/study_link_models.dart
+    theme/
+  features/
+    auth/
+      data/auth_repository.dart
+      presentation/pages/
+    home/
+      presentation/pages/
+      presentation/widgets/
+    tutors/
+      presentation/pages/
+      presentation/widgets/
+    booking/
+      presentation/pages/
+    sessions/
+      presentation/pages/
+  shared/widgets/
+test/
+integration_test/
+docs/
+firebase/
 ```
 
-## Demo user flow
+## Known limitations
 
-1. Sign in with any valid-looking email and a password of at least 8 characters (authentication is a visual placeholder until Member 1 connects Firebase Auth).
-2. Browse subjects from Home or Find.
-3. Open a tutor profile and choose a date, time and meeting mode.
-4. Confirm the booking and open My Sessions.
-5. Open Session Details and try the cancel-session bottom sheet.
-6. From My Sessions, rate the completed Statistics session.
+- The team must provide its Firebase project configuration before live authentication and Firestore operations can be used.
+- Production Firestore data must be seeded using the documented schema, and the backend team must validate the security rules against its final schema.
+- Tutor availability, sessions and ratings depend on the backend records being populated with the required fields.
+- The repository's Figma source could not be loaded in the current review environment. Final pixel-by-pixel verification must be completed against the team's accessible Figma file on target devices.
+- A device-recorded demo video and screenshots must be captured from the running app for final submission.
 
-## Known limitations and future integration
+## Future work
 
-- Sample tutor, subject, booking and session data is currently held in Riverpod state; it is not persisted between app restarts.
-- Firebase Authentication, Google sign-in and Firestore CRUD must be connected by the relevant team members.
-- The Figma prototype sample dates are retained as shown in the supplied screenshots for visual fidelity.
-- Add the final Android runner generated by Flutter tooling if it is not supplied in the repository.
-- Validate contrast ratios and device layouts on the team's target physical devices before submission.
+- Add Google sign-in if required by the project brief.
+- Add tutor-side availability management and session completion workflows.
+- Add live updates for availability and session status.
+- Add profile editing, notifications and rescheduling.
+- Add automated screenshot comparisons against approved Figma frames.
+
+## Contribution
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch and review conventions.

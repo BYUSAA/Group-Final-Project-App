@@ -14,6 +14,8 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(studyLinkProvider);
+    final upcomingSessions = state.sessions.where((session) => session.isUpcoming && session.status == 'confirmed').toList();
+    final nextSession = upcomingSessions.isEmpty ? null : upcomingSessions.first;
     return Scaffold(
       backgroundColor: AppColors.background,
       bottomNavigationBar: const AppBottomNav(selectedIndex: 0),
@@ -42,42 +44,50 @@ class HomePage extends ConsumerWidget {
             const Text('Your next session', style: AppTextStyles.section),
             TextButton(onPressed: () => context.go('/sessions'), child: const Text('See all', style: TextStyle(color: AppColors.green, fontWeight: FontWeight.w700))),
           ]),
-          AppCard(
-            color: AppColors.green,
-            padding: const EdgeInsets.all(17),
-            onTap: () => context.push('/session-details'),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('DATA STRUCTURES & ALGORITHMS', style: AppTextStyles.eyebrow.copyWith(color: Colors.white.withValues(alpha: .72), fontSize: 10)),
-                  const SizedBox(height: 5),
-                  const Text('with Kevin Habimana', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
-                ])),
-                const CircleAvatar(radius: 22, backgroundColor: AppColors.beigeAvatar, child: Text('KH', style: TextStyle(color: Color(0xFF765A22), fontWeight: FontWeight.w700))),
+          if (nextSession == null)
+            AppCard(
+              padding: const EdgeInsets.all(17),
+              child: Row(children: [
+                const Icon(Icons.event_available_outlined, color: AppColors.green, size: 24),
+                const SizedBox(width: 12),
+                Expanded(child: Text('You have no upcoming sessions. Find a peer tutor when you need help.', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary))),
               ]),
-              const SizedBox(height: 12),
-              Wrap(spacing: 16, runSpacing: 8, children: [
-                _HeroMeta(icon: Icons.calendar_today_outlined, label: 'Thu 24 Sep · 16:00'),
-                _HeroMeta(icon: Icons.location_on_outlined, label: 'Library, pod 2'),
+            )
+          else
+            AppCard(
+              color: AppColors.green,
+              padding: const EdgeInsets.all(17),
+              onTap: () {
+                ref.read(studyLinkProvider.notifier).selectSession(nextSession);
+                context.push('/session-details?sessionId=${Uri.encodeQueryComponent(nextSession.id)}');
+              },
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(nextSession.subject.toUpperCase(), style: AppTextStyles.eyebrow.copyWith(color: Colors.white.withValues(alpha: .72), fontSize: 10)),
+                    const SizedBox(height: 5),
+                    Text('with ${nextSession.tutorName}', style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                  ])),
+                  CircleAvatar(radius: 22, backgroundColor: AppColors.beigeAvatar, child: Text(nextSession.initials, style: const TextStyle(color: Color(0xFF765A22), fontWeight: FontWeight.w700))),
+                ]),
+                const SizedBox(height: 12),
+                Wrap(spacing: 16, runSpacing: 8, children: [
+                  _HeroMeta(icon: Icons.calendar_today_outlined, label: '${nextSession.day} ${nextSession.date} · ${nextSession.time}'),
+                  _HeroMeta(icon: Icons.location_on_outlined, label: nextSession.location),
+                ]),
               ]),
-            ]),
-          ),
+            ),
           const SizedBox(height: 24),
           const Text('Browse by subject', style: AppTextStyles.section),
           const SizedBox(height: 11),
           LayoutBuilder(builder: (context, constraints) {
             final width = (constraints.maxWidth - 10) / 2;
-            final subjects = const [
-              ('Data Structures', '6 tutors free this week', 'Data Structures & Algorithms'),
-              ('Discrete Maths', '4 tutors free this week', 'Discrete Maths'),
-              ('Intro to Python', '9 tutors free this week', 'Intro to Python'),
-              ('Statistics', '3 tutors free this week', 'Statistics'),
-            ];
+            final subjects = state.subjects.take(4).toList();
             return Wrap(spacing: 10, runSpacing: 10, children: subjects.map((subject) => SizedBox(width: width, child: SubjectCard(
-              title: subject.$1,
-              subtitle: subject.$2,
+              title: subject.name,
+              subtitle: '${subject.tutorCount} tutors available',
               onTap: () {
-                ref.read(studyLinkProvider.notifier).selectSubject(subject.$3);
+                ref.read(studyLinkProvider.notifier).selectSubject(subject.name, id: subject.id);
                 context.push('/tutors');
               },
             ))).toList());

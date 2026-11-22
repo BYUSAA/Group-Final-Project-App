@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../features/auth/presentation/pages/sign_in_page.dart';
 import '../../features/auth/presentation/pages/sign_up_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/records/presentation/pages/search_subject_page.dart';
-import '../../features/records/presentation/pages/tutor_results_page.dart';
-import '../../features/records/presentation/pages/tutor_profile_page.dart';
-import '../../features/records/presentation/pages/availability_page.dart';
-import '../../features/records/presentation/pages/booking_confirmation_page.dart';
-import '../../features/records/presentation/pages/my_sessions_page.dart';
-import '../../features/records/presentation/pages/session_details_page.dart';
-import '../../features/records/presentation/pages/rate_session_page.dart';
+import '../../features/tutors/presentation/pages/search_subject_page.dart';
+import '../../features/tutors/presentation/pages/tutor_results_page.dart';
+import '../../features/tutors/presentation/pages/tutor_profile_page.dart';
+import '../../features/booking/presentation/pages/availability_page.dart';
+import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
+import '../../features/sessions/presentation/pages/my_sessions_page.dart';
+import '../../features/sessions/presentation/pages/session_details_page.dart';
+import '../../features/sessions/presentation/pages/rate_session_page.dart';
 
 CustomTransitionPage<void> _screen(GoRouterState state, Widget child) => CustomTransitionPage<void>(
       key: state.pageKey,
@@ -42,7 +43,19 @@ final appRouterProvider = Provider<GoRouter>((ref) => GoRouter(
         GoRoute(path: '/availability', pageBuilder: (context, state) => _screen(state, const AvailabilityPage())),
         GoRoute(path: '/booking-confirmed', pageBuilder: (context, state) => _screen(state, const BookingConfirmationPage())),
         GoRoute(path: '/sessions', pageBuilder: (context, state) => _screen(state, const MySessionsPage())),
-        GoRoute(path: '/session-details', pageBuilder: (context, state) => _screen(state, const SessionDetailsPage())),
-        GoRoute(path: '/rate-session', pageBuilder: (context, state) => _screen(state, const RateSessionPage())),
+        GoRoute(
+          path: '/session-details',
+          pageBuilder: (context, state) => _screen(
+            state,
+            SessionDetailsPage(sessionId: state.uri.queryParameters['sessionId'] ?? ''),
+          ),
+        ),
+        GoRoute(
+          path: '/rate-session',
+          pageBuilder: (context, state) => _screen(
+            state,
+            RateSessionPage(sessionId: state.uri.queryParameters['sessionId'] ?? ''),
+          ),
+        ),
       ],
     ));

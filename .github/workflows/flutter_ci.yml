@@ -6,32 +6,50 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   analyze-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Generate Android runner if absent
+      - name: Generate Android runner and format Dart sources
         run: |
           if [ ! -f android/gradlew ]; then
-            rm -rf android ios
-            flutter create --platforms=android,ios --org com.studylink --project-name studylink .
+            flutter create --platforms=android --org com.studylink --project-name studylink .
           fi
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Format Dart sources
-        run: dart format .
+          dart format .
+          git add -A android lib test integration_test
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Generate Android runner and format Dart sources"
+            if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+              git push origin "HEAD:${{ github.ref_name }}"
+            fi
+          fi
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
+      - name: Install dependencies
+        run: flutter pub get
       - name: Analyze
         run: flutter analyze
-      - name: Test
+      - name: Unit and widget tests
         run: flutter test --coverage
       - name: Build Android debug APK
         run: flutter build apk --debug
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: studylink-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error

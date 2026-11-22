@@ -1,18 +1,78 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../../app/state/study_link_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../features/auth/data/auth_repository.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/custom_dialog.dart';
 
-class SignInPage extends StatefulWidget {
+class SignInPage extends ConsumerStatefulWidget {
   const SignInPage({super.key});
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _SignInPageState extends ConsumerState<SignInPage> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _submitting = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signIn() async {
+    if (!(_formKey.currentState?.validate() ?? false) || _submitting) return;
+    setState(() => _submitting = true);
+    try {
+      final profile = await ref.read(authRepositoryProvider).signIn(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      final controller = ref.read(studyLinkProvider.notifier);
+      controller.setCurrentUser(profile);
+      unawaited(controller.loadSessions().catchError((_) {}));
+      unawaited(controller.loadSubjects().catchError((_) {}));
+      if (mounted) context.go('/home');
+    } catch (error) {
+      if (mounted) {
+        final message = error.toString().replaceFirst('Exception: ', '').replaceFirst('Bad state: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _sendPasswordReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      showStudyLinkMessage(context, title: 'Forgot password?', message: 'Enter your ALU email above, then choose Forgot password again.');
+      return;
+    }
+    try {
+      await ref.read(authRepositoryProvider).sendPasswordReset(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password reset instructions have been sent to your email.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -46,7 +106,9 @@ class _SignInPageState extends State<SignInPage> {
                         const _FieldLabel('ALU email'),
                         const SizedBox(height: 7),
                         TextFormField(
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
                           validator: (value) => value == null || !value.contains('@') ? 'Enter a valid ALU email' : null,
                           decoration: const InputDecoration(hintText: 'you@alustudent.com'),
                         ),
@@ -54,29 +116,30 @@ class _SignInPageState extends State<SignInPage> {
                         const _FieldLabel('Password'),
                         const SizedBox(height: 7),
                         TextFormField(
+                          controller: _passwordController,
                           obscureText: true,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _signIn(),
                           validator: (value) => value == null || value.length < 8 ? 'Password must be at least 8 characters' : null,
                           decoration: const InputDecoration(hintText: 'Enter your password'),
                         ),
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () => showStudyLinkMessage(context, title: 'Forgot password?', message: 'Password reset will be connected to the StudyLink authentication service.'),
+                            onPressed: _submitting ? null : _sendPasswordReset,
                             child: const Text('Forgot password?', style: TextStyle(color: AppColors.green, fontSize: 13, fontWeight: FontWeight.w700)),
                           ),
                         ),
                         const SizedBox(height: 24),
                         AppButton(
-                          label: 'Sign in',
-                          onPressed: () {
-                            if (_formKey.currentState?.validate() ?? false) context.go('/home');
-                          },
+                          label: _submitting ? 'Signing in…' : 'Sign in',
+                          onPressed: _submitting ? null : _signIn,
                         ),
                         const SizedBox(height: 12),
                         Center(child: Wrap(alignment: WrapAlignment.center, children: [
                           const Text('New to StudyLink? ', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                           GestureDetector(
-                            onTap: () => context.push('/sign-up'),
+                            onTap: _submitting ? null : () => context.push('/sign-up'),
                             child: const Text('Create an account', style: TextStyle(color: AppColors.green, fontWeight: FontWeight.w700, fontSize: 14)),
                           ),
                         ])),

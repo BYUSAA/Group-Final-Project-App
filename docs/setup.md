@@ -1,15 +1,46 @@
-# Setup
+# Development setup
 
-Install Flutter stable, Android Studio / Android SDK, and Xcode on macOS for iOS. Generate native host runners when they are absent:
+## Requirements
+
+- Flutter stable with Dart 3.6 or later
+- Android Studio and Android SDK for Android builds
+- A Firebase project for live authentication and database operations
+
+## Install and run
 
 ```bash
-flutter create --platforms=android,ios --org com.studylink --project-name studylink .
 flutter pub get
 flutter run
 ```
 
-Without Firebase client config, StudyLink starts in local demo mode. Use any email ending in `@alustudent.com` and a password of at least eight characters.
+If the Android host project is absent, generate it with:
 
-For Firebase: register Android/iOS apps, enable Email/Password and Google providers, create Firestore, then run `firebase login`, `dart pub global activate flutterfire_cli`, `flutterfire configure`, `firebase use --add`, and `firebase deploy --only firestore:rules,firestore:indexes,storage`. Seed subjects, tutors and tutor slot documents. Do not commit service-account keys or generated project-specific Firebase config.
+```bash
+flutter create --platforms=android --org com.studylink --project-name studylink .
+```
 
-Run `dart format .`, `flutter analyze`, `flutter test` and `flutter build apk --debug` before submission.
+## Firebase options
+
+Pass the public client options to Flutter using `--dart-define`:
+
+```bash
+flutter run \
+  --dart-define=FIREBASE_API_KEY=YOUR_API_KEY \
+  --dart-define=FIREBASE_APP_ID=YOUR_APP_ID \
+  --dart-define=FIREBASE_MESSAGING_SENDER_ID=YOUR_SENDER_ID \
+  --dart-define=FIREBASE_PROJECT_ID=YOUR_PROJECT_ID \
+  --dart-define=FIREBASE_STORAGE_BUCKET=YOUR_STORAGE_BUCKET
+```
+
+The values must come from the team's Firebase project. Do not commit secrets or real service-account credentials.
+
+## Quality checks
+
+```bash
+dart format .
+flutter analyze
+flutter test --coverage
+flutter build apk --debug
+```
+
+The GitHub Actions workflow runs these checks and uploads the debug APK as a workflow artifact.

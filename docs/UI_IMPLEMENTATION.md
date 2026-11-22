@@ -1,63 +1,62 @@
-# StudyLink UI Implementation — Member 3
+# StudyLink UI implementation — Member 3
 
 ## Design reference
 
-The UI follows the supplied StudyLink prototype screenshots. The visual language uses:
+The screens continue the supplied StudyLink prototype's visual language:
 
-- Warm off-white page background (`#F8F4EE`)
-- Dark charcoal text (`#202522`)
-- Deep green primary actions (`#1F6653`)
-- Mint selected states and privacy surfaces (`#E5F0EB`)
-- Warm beige cards and avatars (`#F4DFB1`)
-- Gold rating accents (`#D18B16`)
-- Red destructive action (`#B9271D`)
+- Warm off-white page background
+- Dark charcoal text
+- Deep green primary actions
+- Mint selected states and privacy surfaces
+- Warm beige cards and avatars
+- Gold rating accents
+- Red destructive actions
 
-## Screens and navigation
+The current Figma prototype URL is in the project brief. The Figma site could not be fetched by the automated review environment, so the final implementation must still be visually compared against the approved prototype.
+
+## Screens and routes
 
 | Screen | Route | Main interaction |
 |---|---|---|
-| Sign In | `/sign-in` | Validate email/password, continue to Home |
-| Sign Up | `/sign-up` | Register UI, programme/year and tutor opt-in controls |
-| Home | `/home` | Open search, subjects, upcoming session and session list |
-| Search Subjects | `/search` | Search or select a subject |
-| Tutor Results | `/tutors` | Filter and choose a peer tutor; empty state returns to search |
-| Tutor Profile | `/tutor-profile` | Review subjects, profile and next open time |
-| Available Time Slots | `/availability` | Select date, slot, mode and private note |
-| Booking Confirmation | `/booking-confirmed` | View successful booking and go to sessions or Home |
-| My Sessions | `/sessions` | View upcoming and past sessions; rate completed session |
-| Session Details | `/session-details` | Review booking and open cancel bottom sheet |
-| Rate Session | `/rate-session` | Select stars, outcome, feedback tags and optional note |
+| Sign In | `/sign-in` | Firebase email/password sign-in and reset email |
+| Sign Up | `/sign-up` | Firebase account creation and profile save |
+| Home | `/home` | Next session, subject shortcuts and bottom navigation |
+| Search Subjects | `/search` | Query active Firestore subjects |
+| Tutor Results | `/tutors` | Tutors associated with the selected subject; empty state returns to search |
+| Tutor Profile | `/tutor-profile` | Selected tutor's profile and subjects |
+| Available Time Slots | `/availability` | Read open slots, choose date/time/mode and write a private note |
+| Booking Confirmation | `/booking-confirmed` | Display the created session |
+| My Sessions | `/sessions` | Load the authenticated student's sessions |
+| Session Details | `/session-details?sessionId=...` | Display the selected session by ID |
+| Rate Session | `/rate-session?sessionId=...` | Submit a rating against the selected completed session |
 
-## Reusable components
+## Reusable widgets
 
-`AppButton`, `AppCard`, `AppTextField`, `LoadingIndicator`, `EmptyState`, `AppBottomNav`, `InitialsAvatar` and the shared dialog helper are in `lib/shared/widgets/`.
+The shared widgets include `AppButton`, `AppCard`, `AppTextField`, `LoadingIndicator`, `EmptyState`, `AppBottomNav`, `InitialsAvatar` and the shared message dialog.
 
-## Responsive behavior
+## State and navigation
 
-Scrollable content is used on form-heavy and detail pages. Primary actions are placed in bottom sections where the prototype shows sticky actions. Content widths are constrained on larger screens; rows and chips wrap where possible to avoid horizontal overflow on narrow phones. The app uses Material 3 controls with touch-friendly heights.
+Riverpod Notifiers manage search state, tutor selection, selected date and slot, meeting mode, session selection and rating input. GoRouter manages route transitions. No BLoC/Cubit implementation is used by the active app.
 
-## Navigation and error states
+Routes for details and rating carry a `sessionId` query parameter. This prevents the UI from relying on one fixed shared session when a student opens a different booking.
 
-- The tutor-results empty state includes a return-to-search action.
-- Availability confirmation checks the booking result. An unavailable result remains on the availability page and displays a SnackBar.
-- A thrown booking error displays a clear message while preserving the selected tutor and the entered booking details.
-- Session cancellation is a modal bottom sheet with a reason selection, cancel action, reschedule action and keep-session action.
+## Data integration
 
-## State and integration boundary
+Firebase Authentication creates and signs in student accounts. Firestore repositories query subjects, tutors, nested tutor availability and the authenticated student's sessions. A transaction reserves an availability slot and creates its session document. Cancellation releases only the slot associated with the selected session; rating writes one rating document for the selected completed session.
 
-The presentation layer uses Riverpod and `go_router`. The current controller uses sample local records to make the UI navigable. Replace these local demo actions with the team's data repositories for Firestore persistence and Firebase Auth; do not move business rules into page widgets. Member 4 should align provider ownership and route protection with the agreed app-wide architecture.
+## Error handling
 
-## Contrast and touch target spot checks
+- No matching tutors: display an empty state with a route back to Search.
+- No open time slots: explain that no times are available on the selected date.
+- A slot claimed by another user: the transaction fails without clearing the selected tutor or booking details.
+- Firebase/network errors: display a readable message.
+- Empty sessions: display empty upcoming/past sections.
+- Loading data: display a loading indicator while requests are pending.
 
-The implementation's key foreground/background combinations were checked using WCAG relative luminance contrast calculations:
+## Responsive behavior and accessibility
 
-| Pair | Contrast |
-|---|---:|
-| Main text on page background | 15.19:1 |
-| Secondary text on page background | 4.93:1 |
-| Secondary text on soft card background | 4.56:1 |
-| White label on primary green button | 7.61:1 |
-| Green label on mint selected state | 6.49:1 |
-| White label on destructive red button | 6.51:1 |
+Scrollable layouts and constrained content widths are retained on form-heavy and detail pages. CI includes widget tests for the sign-in view at compact portrait and landscape sizes. Final verification still needs to cover all screens on a small phone (5.5 inches or less), a large phone (6.7 inches or more), and landscape displays, with manual contrast/tap-target checks.
 
-Primary action buttons use a 52 logical-pixel height; choice controls and bottom navigation are also sized to provide comfortable touch areas. These are design-token checks and should be revalidated against any final team-wide theme changes.
+## Integration boundary
+
+Firebase options must be supplied by the team using Dart defines. The final Firestore schema, indexes and rules need backend-team review before production deployment.
