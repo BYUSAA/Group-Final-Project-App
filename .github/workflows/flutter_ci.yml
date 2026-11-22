@@ -7,28 +7,31 @@ on:
     branches: [main]
 
 jobs:
-  analyze-and-test:
+  analyze-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Generate Android runner when missing
+      - name: Generate Android runner if absent
         run: |
           if [ ! -f android/gradlew ]; then
-            flutter create --platforms=android --org com.studylink --project-name studylink .
+            rm -rf android ios
+            flutter create --platforms=android,ios --org com.studylink --project-name studylink .
           fi
       - name: Install dependencies
         run: flutter pub get
-      - name: Check formatting
+      - name: Format Dart sources
         run: dart format .
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
       - name: Analyze
         run: flutter analyze
-      - name: Run tests
-        run: flutter test
-      - name: Build debug APK
+      - name: Test
+        run: flutter test --coverage
+      - name: Build Android debug APK
         run: flutter build apk --debug
