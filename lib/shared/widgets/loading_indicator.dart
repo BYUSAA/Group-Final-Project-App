@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../core/theme/app_colors.dart';
 
 class LoadingIndicator extends StatelessWidget {
@@ -7,8 +7,12 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const CircularProgressIndicator(color: AppColors.green, strokeWidth: 2.5),
-          if (label != null) ...[const SizedBox(height: 12), Text(label!, style: const TextStyle(color: AppColors.textSecondary))],
+          const CircularProgressIndicator(
+              color: AppColors.green, strokeWidth: 2.5),
+          if (label != null) ...[
+            const SizedBox(height: 12),
+            Text(label!, style: const TextStyle(color: AppColors.textSecondary))
+          ],
         ]),
       );
 }

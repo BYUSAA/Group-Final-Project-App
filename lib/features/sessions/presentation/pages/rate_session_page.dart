@@ -1,114 +1,301 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/di/injection_container.dart';
+
+import '../../../../app/state/study_link_controller.dart';
+import '../../../../core/models/study_link_models.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/avatar_initials.dart';
-import '../../../../core/widgets/chip_selector.dart';
-import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/rating_stars.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../domain/entities/session.dart';
-import '../../domain/repositories/session_repository.dart';
-import '../../domain/usecases/get_session_details.dart';
-import '../bloc/my_sessions/my_sessions_bloc.dart';
-import '../bloc/my_sessions/my_sessions_event.dart';
-import '../bloc/rating/rating_bloc.dart';
-import '../bloc/rating/rating_event.dart';
-import '../bloc/rating/rating_state.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/initials_avatar.dart';
+import '../../../../shared/widgets/loading_indicator.dart';
 
-class RateSessionPage extends StatefulWidget {
+class RateSessionPage extends ConsumerStatefulWidget {
   const RateSessionPage({required this.sessionId, super.key});
   final String sessionId;
+
+  static const feedbackOptions = [
+    'Clear explanations',
+    'Patient',
+    'On time',
+    'Well prepared',
+    'Easy to ask questions'
+  ];
+
   @override
-  State<RateSessionPage> createState() => _RateSessionPageState();
+  ConsumerState<RateSessionPage> createState() => _RateSessionPageState();
 }
-class _RateSessionPageState extends State<RateSessionPage> {
-  late final Future<Session> _sessionFuture;
-  int _rating = 4;
-  String _unstuck = 'Yes';
-  final Set<String> _tags = {'Clear explanations'};
-  final _comment = TextEditingController();
-  static const options = ['Clear explanations','Patient','On time','Well prepared','Easy to ask questions'];
+
+class _RateSessionPageState extends ConsumerState<RateSessionPage> {
+  bool _loading = false;
+  bool _submitting = false;
 
   @override
   void initState() {
     super.initState();
-    _sessionFuture = GetSessionDetails(sl<SessionRepository>())(widget.sessionId);
+    final alreadyLoaded = ref.read(studyLinkProvider).sessions.any(
+          (session) => session.id == widget.sessionId,
+        );
+    _loading = widget.sessionId.isNotEmpty && !alreadyLoaded;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final session = ref
+          .read(studyLinkProvider)
+          .sessions
+          .where((item) => item.id == widget.sessionId);
+      if (session.isEmpty && widget.sessionId.isNotEmpty) {
+        setState(() => _loading = true);
+        try {
+          await ref
+              .read(studyLinkProvider.notifier)
+              .loadSessionById(widget.sessionId);
+        } catch (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.toString())));
+          }
+        } finally {
+          if (mounted) setState(() => _loading = false);
+        }
+      } else if (session.isNotEmpty) {
+        ref.read(studyLinkProvider.notifier).selectSession(session.first);
+      }
+    });
   }
-  @override
-  void dispose() { _comment.dispose(); super.dispose(); }
+
+  Future<void> _submit(StudySession session) async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await ref.read(studyLinkProvider.notifier).submitRating(session.id);
+      if (mounted) context.go('/sessions');
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(error.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.background,
-    body: SafeArea(child: Center(child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 520),
-      child: FutureBuilder<Session>(
-        future: _sessionFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator(color: AppColors.green));
-          if (snapshot.hasError || !snapshot.hasData) return Center(child: Text(snapshot.error?.toString() ?? 'Session not found.'));
-          final session = snapshot.data!;
-          return BlocConsumer<RatingBloc, RatingState>(
-            listener: (context, state) {
-              if (state.status == RatingStatus.success) {
-                final auth = context.read<AuthBloc>().state;
-                if (auth is AuthAuthenticated) {
-                  context.read<MySessionsBloc>().add(MySessionsRequested(auth.user.uid));
-                }
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message ?? 'Thank you for your feedback.')));
-                context.go('/sessions');
-              }
-              if (state.status == RatingStatus.failure) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message ?? 'Could not submit rating.')));
-            },
-            builder: (context, ratingState) => Column(children: [
-              Expanded(child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                IconButton(onPressed: () => context.pop(), padding: EdgeInsets.zero, alignment: Alignment.centerLeft, icon: const Icon(Icons.close_rounded)),
-                const SizedBox(height: 18),
-                Center(child: AvatarInitials(name: session.tutorName, size: 60, backgroundColor: AppColors.mint)),
-                const SizedBox(height: 9),
-                Text('How was your session with ${session.tutorName.split(' ').first}?', textAlign: TextAlign.center, style: AppTextStyles.pageTitle.copyWith(fontSize: 22)),
-                const SizedBox(height: 8),
-                Center(child: Text('${session.subjectName} · ${session.startAt.day} Sep · ${session.mode}', style: AppTextStyles.caption)),
-                const SizedBox(height: 19),
-                Center(child: RatingStars(rating: _rating, onChanged: (v) => setState(() => _rating = v), size: 34)),
-                Center(child: Text(_rating >= 4 ? 'Helpful' : _rating == 3 ? 'Good' : 'Could be better', style: AppTextStyles.caption)),
-                const SizedBox(height: 20),
-                const Text('Did you get unstuck?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                const SizedBox(height: 8),
-                ChipSelector(options: const ['Yes','Partly','No'], selected: {_unstuck}, onSelected: (v) => setState(() => _unstuck = v)),
-                const SizedBox(height: 18),
-                const Text('What went well?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                const SizedBox(height: 8),
-                ChipSelector(options: options, selected: _tags, onSelected: (v) => setState(() => _tags.contains(v) ? _tags.remove(v) : _tags.add(v))),
-                const SizedBox(height: 18),
-                const Text('Anything else? (optional)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                const SizedBox(height: 8),
-                TextField(controller: _comment, maxLines: 3, decoration: const InputDecoration(hintText: 'A short note for your tutor')),
-              ]))),
-              Padding(padding: const EdgeInsets.fromLTRB(18, 10, 18, 14), child: PrimaryButton(
-                label: 'Submit rating',
-                isLoading: ratingState.status == RatingStatus.submitting,
-                onPressed: ratingState.status == RatingStatus.submitting ? null : () {
-                  final auth = context.read<AuthBloc>().state;
-                  final studentId = auth is AuthAuthenticated ? auth.user.uid : session.studentId;
-                  context.read<RatingBloc>().add(RatingSubmitted(
-                    sessionId: session.id,
-                    studentId: studentId,
-                    tutorId: session.tutorId,
-                    rating: _rating,
-                    feedbackTags: [..._tags, 'Helped: $_unstuck'],
-                    comment: _comment.text.trim(),
-                  ));
-                },
+  Widget build(BuildContext context) {
+    final state = ref.watch(studyLinkProvider);
+    final matchingSessions =
+        state.sessions.where((item) => item.id == widget.sessionId).toList();
+    StudySession? session =
+        matchingSessions.isEmpty ? null : matchingSessions.first;
+    if (session == null && widget.sessionId.isEmpty) {
+      session = state.selectedSession;
+    }
+
+    if (_loading) {
+      return const Scaffold(
+          body: SafeArea(child: Center(child: LoadingIndicator())));
+    }
+    if (session == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+            child: Center(
+                child: AppButton(
+                    label: 'Back to my sessions',
+                    onPressed: () => context.go('/sessions')))),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(children: [
+          Expanded(
+              child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                            onPressed: () => context.pop(),
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.centerLeft,
+                            icon: const Icon(Icons.close_rounded, size: 21)),
+                        const SizedBox(height: 18),
+                        Center(
+                            child: InitialsAvatar(
+                                initials: session.initials,
+                                backgroundColor: AppColors.mintDark,
+                                size: 60)),
+                        const SizedBox(height: 9),
+                        Text(
+                            'How was your session with ${session.tutorName.split(' ').first}?',
+                            textAlign: TextAlign.center,
+                            style:
+                                AppTextStyles.pageTitle.copyWith(fontSize: 22)),
+                        const SizedBox(height: 8),
+                        Center(
+                            child: Text(
+                                '${session.subject} · ${session.day} ${session.date} · ${session.mode}',
+                                style: AppTextStyles.caption
+                                    .copyWith(fontSize: 12))),
+                        const SizedBox(height: 22),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(5, (index) {
+                              final selected = index < state.rating;
+                              return IconButton(
+                                onPressed: _submitting
+                                    ? null
+                                    : () => ref
+                                        .read(studyLinkProvider.notifier)
+                                        .setRating(index + 1),
+                                visualDensity: VisualDensity.compact,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
+                                constraints: const BoxConstraints(
+                                    minWidth: 42, minHeight: 48),
+                                icon: Icon(
+                                    selected
+                                        ? Icons.star_rounded
+                                        : Icons.star_border_rounded,
+                                    size: 34,
+                                    color: selected
+                                        ? AppColors.star
+                                        : const Color(0xFF9AA19C)),
+                              );
+                            })),
+                        Center(
+                            child: Text(
+                                state.rating >= 4
+                                    ? 'Helpful'
+                                    : state.rating == 3
+                                        ? 'Good'
+                                        : 'Could be better',
+                                style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600))),
+                        const SizedBox(height: 21),
+                        const Text('Did you get unstuck?',
+                            style: TextStyle(
+                                color: AppColors.text,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Row(
+                            children: ['Yes', 'Partly', 'No'].map((answer) {
+                          final selected = state.unstuckAnswer == answer;
+                          return Expanded(
+                              child: Padding(
+                                  padding: const EdgeInsets.only(right: 7),
+                                  child: SizedBox(
+                                      height: 43,
+                                      child: OutlinedButton(
+                                        onPressed: _submitting
+                                            ? null
+                                            : () => ref
+                                                .read(
+                                                    studyLinkProvider.notifier)
+                                                .setUnstuckAnswer(answer),
+                                        style: OutlinedButton.styleFrom(
+                                          backgroundColor: selected
+                                              ? AppColors.green
+                                              : Colors.white,
+                                          foregroundColor: selected
+                                              ? Colors.white
+                                              : AppColors.text,
+                                          side: BorderSide(
+                                              color: selected
+                                                  ? AppColors.green
+                                                  : AppColors.border),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(11)),
+                                          textStyle: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13),
+                                        ),
+                                        child: Text(answer),
+                                      ))));
+                        }).toList()),
+                        const SizedBox(height: 20),
+                        const Text('What went well?',
+                            style: TextStyle(
+                                color: AppColors.text,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                            spacing: 7,
+                            runSpacing: 7,
+                            children:
+                                RateSessionPage.feedbackOptions.map((value) {
+                              final selected =
+                                  state.feedbackTags.contains(value);
+                              return FilterChip(
+                                label: Text(value,
+                                    style: TextStyle(
+                                        color: selected
+                                            ? AppColors.greenDark
+                                            : AppColors.text,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600)),
+                                selected: selected,
+                                onSelected: _submitting
+                                    ? null
+                                    : (_) => ref
+                                        .read(studyLinkProvider.notifier)
+                                        .toggleFeedbackTag(value),
+                                selectedColor: AppColors.mint,
+                                backgroundColor: Colors.white,
+                                side: BorderSide(
+                                    color: selected
+                                        ? AppColors.green
+                                        : AppColors.border),
+                                showCheckmark: false,
+                              );
+                            }).toList()),
+                        const SizedBox(height: 18),
+                        const Text.rich(TextSpan(children: [
+                          TextSpan(
+                              text: 'Anything else? ',
+                              style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700)),
+                          TextSpan(
+                              text: '(optional)',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12)),
+                        ])),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          key: ValueKey('feedback-${session.id}'),
+                          initialValue: state.extraFeedback,
+                          onChanged: ref
+                              .read(studyLinkProvider.notifier)
+                              .setExtraFeedback,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                              hintText: 'A short note for your tutor',
+                              alignLabelWithHint: true),
+                        ),
+                      ]))),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+              child: AppButton(
+                label: _submitting ? 'Submitting…' : 'Submit rating',
+                onPressed: _submitting || session.isRated
+                    ? null
+                    : () => _submit(session!),
               )),
-            ]),
-          );
-        },
-      ),
-    ))),
-  );
+        ]),
+      ))),
+    );
+  }
 }
