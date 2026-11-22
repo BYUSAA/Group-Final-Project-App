@@ -12,7 +12,8 @@ Future<void> main() async {
       exception: error,
       stack: stackTrace,
       library: 'StudyLink Firebase initialization',
-      context: ErrorDescription('while initializing the configured Firebase project'),
+      context: ErrorDescription(
+          'while initializing the configured Firebase project'),
     ));
   }
   runApp(const ProviderScope(child: StudyLinkApp()));

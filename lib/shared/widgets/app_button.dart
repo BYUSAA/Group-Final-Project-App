@@ -27,7 +27,9 @@ class AppButton extends StatelessWidget {
     final child = icon == null
         ? Text(label, textAlign: TextAlign.center)
         : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 18), const SizedBox(width: 8), Text(label),
+            Icon(icon, size: 18),
+            const SizedBox(width: 8),
+            Text(label),
           ]);
     final button = SizedBox(
       height: height,
@@ -38,7 +40,8 @@ class AppButton extends StatelessWidget {
               backgroundColor: AppColors.green,
               foregroundColor: Colors.white,
               disabledBackgroundColor: AppColors.green.withValues(alpha: .4),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13)),
               textStyle: AppTextStyles.button,
             ),
             onPressed: onPressed,
@@ -48,8 +51,10 @@ class AppButton extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.text,
               side: const BorderSide(color: AppColors.border),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
-              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13)),
+              textStyle:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             onPressed: onPressed,
             child: child,
@@ -58,7 +63,8 @@ class AppButton extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.danger,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13)),
               textStyle: AppTextStyles.button,
             ),
             onPressed: onPressed,
@@ -67,7 +73,8 @@ class AppButton extends StatelessWidget {
         AppButtonStyle.text => TextButton(
             style: TextButton.styleFrom(
               foregroundColor: AppColors.green,
-              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              textStyle:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
               minimumSize: const Size(48, 48),
             ),
             onPressed: onPressed,

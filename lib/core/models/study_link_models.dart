@@ -35,7 +35,8 @@ class Tutor {
     required this.avatarColor,
     this.fullyBooked = false,
     this.isNew = false,
-    this.testimonial = 'He did not make me feel slow for asking basic questions. The topic finally clicked.',
+    this.testimonial =
+        'He did not make me feel slow for asking basic questions. The topic finally clicked.',
     this.modes = const ['On campus', 'Online'],
   });
 
@@ -72,7 +73,8 @@ class AvailabilitySlot {
   final int durationMinutes;
   final String mode;
 
-  String get time => '${startAt.hour.toString().padLeft(2, '0')}:${startAt.minute.toString().padLeft(2, '0')}';
+  String get time =>
+      '${startAt.hour.toString().padLeft(2, '0')}:${startAt.minute.toString().padLeft(2, '0')}';
 }
 
 @immutable
@@ -124,7 +126,8 @@ class StudySession {
     bool? isRated,
     int? rating,
     String? status,
-  }) => StudySession(
+  }) =>
+      StudySession(
         id: id,
         studentId: studentId,
         tutorId: tutorId,
@@ -156,10 +159,16 @@ const sampleKevin = Tutor(
   rating: 4.9,
   sessions: 14,
   nextSlot: 'Today · 18:00',
-  subjects: ['Data Structures & Algorithms', 'Intro to Python', 'Discrete Maths'],
-  about: 'I struggled with recursion and linked lists in my first year, so I explain them step by step with drawings before we write any code. Bring the exact exercise you are stuck on.',
+  subjects: [
+    'Data Structures & Algorithms',
+    'Intro to Python',
+    'Discrete Maths'
+  ],
+  about:
+      'I struggled with recursion and linked lists in my first year, so I explain them step by step with drawings before we write any code. Bring the exact exercise you are stuck on.',
   avatarColor: Color(0xFFF4DFB1),
-  testimonial: 'He did not make me feel slow for asking basic questions. Trees finally clicked.',
+  testimonial:
+      'He did not make me feel slow for asking basic questions. Trees finally clicked.',
 );
 
 const sampleTutors = <Tutor>[
@@ -173,8 +182,14 @@ const sampleTutors = <Tutor>[
     rating: 4.7,
     sessions: 9,
     nextSlot: 'Tomorrow · 10:00',
-    subjects: ['Data Structures & Algorithms', 'Statistics', 'Data Analysis with Python', 'Discrete Maths'],
-    about: 'I use practical examples and clear steps to make difficult topics easier to understand. We work through the problem together.',
+    subjects: [
+      'Data Structures & Algorithms',
+      'Statistics',
+      'Data Analysis with Python',
+      'Discrete Maths'
+    ],
+    about:
+        'I use practical examples and clear steps to make difficult topics easier to understand. We work through the problem together.',
     avatarColor: Color(0xFFD5E8E0),
   ),
   Tutor(
@@ -187,7 +202,8 @@ const sampleTutors = <Tutor>[
     sessions: 0,
     nextSlot: 'Fri · 13:00',
     subjects: ['Data Structures & Algorithms', 'Web Development'],
-    about: 'I enjoy breaking down challenging engineering concepts into smaller, manageable steps.',
+    about:
+        'I enjoy breaking down challenging engineering concepts into smaller, manageable steps.',
     avatarColor: Color(0xFFE7DFF3),
     isNew: true,
   ),
@@ -218,10 +234,34 @@ const sampleSubjects = <String>[
 ];
 
 const sampleSubjectRecords = <StudySubject>[
-  StudySubject(id: 'sample-dsa', name: 'Data Structures & Algorithms', programme: 'Software Engineering', tutorCount: 6),
-  StudySubject(id: 'sample-db', name: 'Databases & SQL', programme: 'Software Engineering', tutorCount: 3),
-  StudySubject(id: 'sample-python-data', name: 'Data Analysis with Python', programme: 'Global Challenges', tutorCount: 2),
-  StudySubject(id: 'sample-discrete', name: 'Discrete Maths', programme: 'Software Engineering', tutorCount: 4),
-  StudySubject(id: 'sample-python', name: 'Intro to Python', programme: 'Software Engineering', tutorCount: 9),
-  StudySubject(id: 'sample-stats', name: 'Statistics', programme: 'Global Challenges', tutorCount: 3),
+  StudySubject(
+      id: 'sample-dsa',
+      name: 'Data Structures & Algorithms',
+      programme: 'Software Engineering',
+      tutorCount: 6),
+  StudySubject(
+      id: 'sample-db',
+      name: 'Databases & SQL',
+      programme: 'Software Engineering',
+      tutorCount: 3),
+  StudySubject(
+      id: 'sample-python-data',
+      name: 'Data Analysis with Python',
+      programme: 'Global Challenges',
+      tutorCount: 2),
+  StudySubject(
+      id: 'sample-discrete',
+      name: 'Discrete Maths',
+      programme: 'Software Engineering',
+      tutorCount: 4),
+  StudySubject(
+      id: 'sample-python',
+      name: 'Intro to Python',
+      programme: 'Software Engineering',
+      tutorCount: 9),
+  StudySubject(
+      id: 'sample-stats',
+      name: 'Statistics',
+      programme: 'Global Challenges',
+      tutorCount: 3),
 ];

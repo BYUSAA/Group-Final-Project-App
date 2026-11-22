@@ -39,8 +39,10 @@ void main() {
 
     await controller.cancelSession('sample-session-kevin');
     final sessions = container.read(studyLinkProvider).sessions;
-    final cancelled = sessions.firstWhere((session) => session.id == 'sample-session-kevin');
-    final completed = sessions.firstWhere((session) => session.id == 'sample-session-python');
+    final cancelled =
+        sessions.firstWhere((session) => session.id == 'sample-session-kevin');
+    final completed =
+        sessions.firstWhere((session) => session.id == 'sample-session-python');
 
     expect(cancelled.status, 'cancelled');
     expect(cancelled.isUpcoming, isFalse);
@@ -56,8 +58,10 @@ void main() {
 
     await controller.submitRating('sample-session-grace');
     final sessions = container.read(studyLinkProvider).sessions;
-    final rated = sessions.firstWhere((session) => session.id == 'sample-session-grace');
-    final other = sessions.firstWhere((session) => session.id == 'sample-session-python');
+    final rated =
+        sessions.firstWhere((session) => session.id == 'sample-session-grace');
+    final other =
+        sessions.firstWhere((session) => session.id == 'sample-session-python');
 
     expect(rated.isRated, isTrue);
     expect(rated.rating, 5);
@@ -73,6 +77,7 @@ void main() {
     controller.toggleFeedbackTag('Patient');
     expect(container.read(studyLinkProvider).feedbackTags, contains('Patient'));
     controller.toggleFeedbackTag('Patient');
-    expect(container.read(studyLinkProvider).feedbackTags, isNot(contains('Patient')));
+    expect(container.read(studyLinkProvider).feedbackTags,
+        isNot(contains('Patient')));
   });
 }

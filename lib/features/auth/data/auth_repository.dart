@@ -38,7 +38,8 @@ abstract interface class AuthRepository {
 class FirebaseAuthRepository implements AuthRepository {
   FirebaseAuth get _auth {
     if (Firebase.apps.isEmpty) {
-      throw StateError('Firebase is not configured. Add the StudyLink Firebase dart-define values before signing in.');
+      throw StateError(
+          'Firebase is not configured. Add the StudyLink Firebase dart-define values before signing in.');
     }
     return FirebaseAuth.instance;
   }
@@ -46,7 +47,8 @@ class FirebaseAuthRepository implements AuthRepository {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   @override
-  Future<AuthProfile> signIn({required String email, required String password}) async {
+  Future<AuthProfile> signIn(
+      {required String email, required String password}) async {
     final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -57,7 +59,8 @@ class FirebaseAuthRepository implements AuthRepository {
     final data = doc.data() ?? <String, dynamic>{};
     return AuthProfile(
       uid: user.uid,
-      name: (data['displayName'] ?? user.displayName ?? user.email ?? 'Student').toString(),
+      name: (data['displayName'] ?? user.displayName ?? user.email ?? 'Student')
+          .toString(),
       email: user.email ?? email.trim(),
       programme: (data['programme'] ?? '').toString(),
       year: (data['year'] as num?)?.toInt() ?? 1,
@@ -79,7 +82,8 @@ class FirebaseAuthRepository implements AuthRepository {
       password: password,
     );
     final user = credential.user;
-    if (user == null) throw StateError('Account creation did not return a user.');
+    if (user == null)
+      throw StateError('Account creation did not return a user.');
     await user.updateDisplayName(name.trim());
     final profile = <String, dynamic>{
       'uid': user.uid,
@@ -121,7 +125,8 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> signOut() => _auth.signOut();
 }
 
-final authRepositoryProvider = Provider<AuthRepository>((ref) => FirebaseAuthRepository());
+final authRepositoryProvider =
+    Provider<AuthRepository>((ref) => FirebaseAuthRepository());
 
 final authStateProvider = StreamProvider<User?>((ref) {
   if (Firebase.apps.isEmpty) return Stream<User?>.value(null);

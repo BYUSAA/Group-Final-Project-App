@@ -8,8 +8,15 @@ import 'package:studylink/features/auth/data/auth_repository.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
-  Future<AuthProfile> signIn({required String email, required String password}) async =>
-      AuthProfile(uid: 'student-1', name: 'Integration Student', email: email, programme: 'Software Eng.', year: 2, isTutor: false);
+  Future<AuthProfile> signIn(
+          {required String email, required String password}) async =>
+      AuthProfile(
+          uid: 'student-1',
+          name: 'Integration Student',
+          email: email,
+          programme: 'Software Eng.',
+          year: 2,
+          isTutor: false);
 
   @override
   Future<AuthProfile> signUp({
@@ -20,7 +27,13 @@ class _FakeAuthRepository implements AuthRepository {
     required int year,
     required bool isTutor,
   }) async =>
-      AuthProfile(uid: 'student-1', name: name, email: email, programme: programme, year: year, isTutor: isTutor);
+      AuthProfile(
+          uid: 'student-1',
+          name: name,
+          email: email,
+          programme: programme,
+          year: year,
+          isTutor: isTutor);
 
   @override
   Future<void> sendPasswordReset(String email) async {}
@@ -32,19 +45,23 @@ class _FakeAuthRepository implements AuthRepository {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('student can sign in, search subjects and open a tutor', (tester) async {
+  testWidgets('student can sign in, search subjects and open a tutor',
+      (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(ProviderScope(
-      overrides: [authRepositoryProvider.overrideWithValue(_FakeAuthRepository())],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(_FakeAuthRepository())
+      ],
       child: const StudyLinkApp(),
     ));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'student@alustudent.com');
+    await tester.enterText(
+        find.byType(TextFormField).at(0), 'student@alustudent.com');
     await tester.enterText(find.byType(TextFormField).at(1), 'password123');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();

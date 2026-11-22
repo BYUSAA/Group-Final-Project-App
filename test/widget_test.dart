@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studylink/app/app.dart';
 
 void main() {
-  testWidgets('sign-in screen renders the StudyLink prototype heading', (tester) async {
+  testWidgets('sign-in screen renders the StudyLink prototype heading',
+      (tester) async {
     tester.view.physicalSize = const Size(430, 932);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -14,11 +15,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('StudyLink'), findsOneWidget);
-    expect(find.text('Stuck on a topic? A classmate has been there.'), findsOneWidget);
+    expect(find.text('Stuck on a topic? A classmate has been there.'),
+        findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
   });
 
-  testWidgets('sign-in layout remains scrollable on a compact landscape display', (tester) async {
+  testWidgets(
+      'sign-in layout remains scrollable on a compact landscape display',
+      (tester) async {
     tester.view.physicalSize = const Size(320, 568);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

@@ -105,7 +105,8 @@ class StudyLinkState {
     bool? isLoadingSessions,
     String? errorMessage,
     bool clearError = false,
-  }) => StudyLinkState(
+  }) =>
+      StudyLinkState(
         userName: userName ?? this.userName,
         userId: userId ?? this.userId,
         searchQuery: searchQuery ?? this.searchQuery,
@@ -129,7 +130,8 @@ class StudyLinkState {
         extraFeedback: extraFeedback ?? this.extraFeedback,
         cancelReason: cancelReason ?? this.cancelReason,
         lastBookingFailed: lastBookingFailed ?? this.lastBookingFailed,
-        selectedSlotAvailable: selectedSlotAvailable ?? this.selectedSlotAvailable,
+        selectedSlotAvailable:
+            selectedSlotAvailable ?? this.selectedSlotAvailable,
         isLoadingSubjects: isLoadingSubjects ?? this.isLoadingSubjects,
         isLoadingTutors: isLoadingTutors ?? this.isLoadingTutors,
         isLoadingSlots: isLoadingSlots ?? this.isLoadingSlots,
@@ -142,7 +144,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   StudyLinkRepository get _repository => ref.read(studyLinkRepositoryProvider);
 
   @override
-  StudyLinkState build() => StudyLinkState(selectedDate: DateTime.now().add(const Duration(days: 1)));
+  StudyLinkState build() =>
+      StudyLinkState(selectedDate: DateTime.now().add(const Duration(days: 1)));
 
   void setCurrentUser(AuthProfile profile) {
     final liveFirebase = _repository.isConfigured;
@@ -156,7 +159,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
     );
   }
 
-  void setSearchQuery(String value) => state = state.copyWith(searchQuery: value);
+  void setSearchQuery(String value) =>
+      state = state.copyWith(searchQuery: value);
 
   void selectSubject(String value, {String? id}) {
     final match = state.subjects.where((subject) => subject.name == value);
@@ -200,7 +204,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   }
 
   void selectTutor(Tutor tutor) {
-    state = state.copyWith(selectedTutor: tutor, availableSlots: const [], clearError: true);
+    state = state.copyWith(
+        selectedTutor: tutor, availableSlots: const [], clearError: true);
   }
 
   Future<void> loadAvailability(DateTime day) async {
@@ -215,7 +220,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
       clearError: true,
     );
     try {
-      final slots = await _repository.getOpenSlots(tutorId: state.selectedTutor.id, day: day);
+      final slots = await _repository.getOpenSlots(
+          tutorId: state.selectedTutor.id, day: day);
       state = state.copyWith(availableSlots: slots, isLoadingSlots: false);
       if (slots.isNotEmpty) {
         final preferred = slots.where(
@@ -252,7 +258,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   }
 
   Future<void> selectDate(DateTime value) async {
-    state = state.copyWith(selectedDate: value, selectedDay: '${_weekday(value)} ${value.day}');
+    state = state.copyWith(
+        selectedDate: value, selectedDay: '${_weekday(value)} ${value.day}');
     await loadAvailability(value);
   }
 
@@ -268,7 +275,8 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   }
 
   void selectMeetingMode(String value) {
-    final matchingSlots = state.availableSlots.where((slot) => slot.mode == value).toList();
+    final matchingSlots =
+        state.availableSlots.where((slot) => slot.mode == value).toList();
     if (matchingSlots.isEmpty) {
       state = state.copyWith(meetingMode: value, selectedSlotId: '');
       return;
@@ -279,15 +287,26 @@ class StudyLinkController extends Notifier<StudyLinkState> {
       selectedTime: matchingSlots.first.time,
     );
   }
-  void setPrivateNote(String value) => state = state.copyWith(privateNote: value);
-  void setRating(int value) => state = state.copyWith(rating: value.clamp(1, 5).toInt());
-  void setUnstuckAnswer(String value) => state = state.copyWith(unstuckAnswer: value);
-  void setExtraFeedback(String value) => state = state.copyWith(extraFeedback: value);
-  void setCancelReason(String value) => state = state.copyWith(cancelReason: value);
-  void setSelectedSlotAvailability(bool value) => state = state.copyWith(selectedSlotAvailable: value);
+
+  void setPrivateNote(String value) =>
+      state = state.copyWith(privateNote: value);
+  void setRating(int value) =>
+      state = state.copyWith(rating: value.clamp(1, 5).toInt());
+  void setUnstuckAnswer(String value) =>
+      state = state.copyWith(unstuckAnswer: value);
+  void setExtraFeedback(String value) =>
+      state = state.copyWith(extraFeedback: value);
+  void setCancelReason(String value) =>
+      state = state.copyWith(cancelReason: value);
+  void setSelectedSlotAvailability(bool value) =>
+      state = state.copyWith(selectedSlotAvailable: value);
 
   void selectSession(StudySession session) {
-    state = state.copyWith(selectedSessionId: session.id, rating: session.rating == 0 ? 4 : session.rating, extraFeedback: '', clearError: true);
+    state = state.copyWith(
+        selectedSessionId: session.id,
+        rating: session.rating == 0 ? 4 : session.rating,
+        extraFeedback: '',
+        clearError: true);
   }
 
   void toggleFeedbackTag(String value) {
@@ -302,14 +321,23 @@ class StudyLinkController extends Notifier<StudyLinkState> {
       state = state.copyWith(lastBookingFailed: true);
       return false;
     }
-    final day = state.selectedDate ?? DateTime.now().add(const Duration(days: 1));
-    final slotMatches = state.availableSlots.where((slot) => slot.id == state.selectedSlotId || slot.time == state.selectedTime);
+    final day =
+        state.selectedDate ?? DateTime.now().add(const Duration(days: 1));
+    final slotMatches = state.availableSlots.where((slot) =>
+        slot.id == state.selectedSlotId || slot.time == state.selectedTime);
     final slot = slotMatches.isNotEmpty
         ? slotMatches.first
         : AvailabilitySlot(
-            id: state.selectedSlotId.isEmpty ? 'local-slot-${day.millisecondsSinceEpoch}' : state.selectedSlotId,
+            id: state.selectedSlotId.isEmpty
+                ? 'local-slot-${day.millisecondsSinceEpoch}'
+                : state.selectedSlotId,
             tutorId: state.selectedTutor.id,
-            startAt: DateTime(day.year, day.month, day.day, int.parse(state.selectedTime.split(':')[0]), int.parse(state.selectedTime.split(':')[1])),
+            startAt: DateTime(
+                day.year,
+                day.month,
+                day.day,
+                int.parse(state.selectedTime.split(':')[0]),
+                int.parse(state.selectedTime.split(':')[1])),
             mode: state.meetingMode,
           );
     try {
@@ -331,10 +359,12 @@ class StudyLinkController extends Notifier<StudyLinkState> {
       );
       return true;
     } on SlotUnavailableException catch (error) {
-      state = state.copyWith(lastBookingFailed: true, errorMessage: error.toString());
+      state = state.copyWith(
+          lastBookingFailed: true, errorMessage: error.toString());
       return false;
     } catch (error) {
-      state = state.copyWith(lastBookingFailed: true, errorMessage: _friendlyError(error));
+      state = state.copyWith(
+          lastBookingFailed: true, errorMessage: _friendlyError(error));
       rethrow;
     }
   }
@@ -356,10 +386,13 @@ class StudyLinkController extends Notifier<StudyLinkState> {
   Future<void> cancelSession(String sessionId) async {
     final selected = state.sessions.where((session) => session.id == sessionId);
     if (selected.isEmpty) throw StateError('This session could not be found.');
-    await _repository.cancelSession(sessionId: sessionId, reason: state.cancelReason);
-    final updated = state.sessions.map((session) => session.id == sessionId
-        ? session.copyWith(isUpcoming: false, status: 'cancelled')
-        : session).toList();
+    await _repository.cancelSession(
+        sessionId: sessionId, reason: state.cancelReason);
+    final updated = state.sessions
+        .map((session) => session.id == sessionId
+            ? session.copyWith(isUpcoming: false, status: 'cancelled')
+            : session)
+        .toList();
     state = state.copyWith(sessions: updated, clearError: true);
   }
 
@@ -367,8 +400,10 @@ class StudyLinkController extends Notifier<StudyLinkState> {
     final selected = state.sessions.where((session) => session.id == sessionId);
     if (selected.isEmpty) throw StateError('This session could not be found.');
     final session = selected.first;
-    if (session.status != 'completed') throw StateError('You can rate a session after it has been completed.');
-    if (session.isRated) throw StateError('This session has already been rated.');
+    if (session.status != 'completed')
+      throw StateError('You can rate a session after it has been completed.');
+    if (session.isRated)
+      throw StateError('This session has already been rated.');
     final tags = [...state.feedbackTags, 'Helped: ${state.unstuckAnswer}'];
     await _repository.submitRating(
       sessionId: sessionId,
@@ -376,23 +411,39 @@ class StudyLinkController extends Notifier<StudyLinkState> {
       tags: tags,
       comment: state.extraFeedback.trim(),
     );
-    final updated = state.sessions.map((item) => item.id == sessionId
-        ? item.copyWith(isRated: true, rating: state.rating)
-        : item).toList();
+    final updated = state.sessions
+        .map((item) => item.id == sessionId
+            ? item.copyWith(isRated: true, rating: state.rating)
+            : item)
+        .toList();
     state = state.copyWith(sessions: updated, clearError: true);
   }
 
   String _friendlyError(Object error) {
-    final message = error.toString().replaceFirst('Exception: ', '').replaceFirst('Bad state: ', '');
-    if (message.contains('permission-denied')) return 'You do not have permission to perform this action.';
-    if (message.contains('network')) return 'A network error occurred. Check your connection and try again.';
+    final message = error
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('Bad state: ', '');
+    if (message.contains('permission-denied'))
+      return 'You do not have permission to perform this action.';
+    if (message.contains('network'))
+      return 'A network error occurred. Check your connection and try again.';
     return message;
   }
 
-  String _weekday(DateTime value) => const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][value.weekday - 1];
+  String _weekday(DateTime value) => const [
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+        'Sun'
+      ][value.weekday - 1];
 }
 
-final studyLinkRepositoryProvider = Provider<StudyLinkRepository>((ref) => StudyLinkRepository());
+final studyLinkRepositoryProvider =
+    Provider<StudyLinkRepository>((ref) => StudyLinkRepository());
 
 final studyLinkProvider = NotifierProvider<StudyLinkController, StudyLinkState>(
   StudyLinkController.new,
