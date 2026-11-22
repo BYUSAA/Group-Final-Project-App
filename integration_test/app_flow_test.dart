@@ -43,8 +43,7 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 void main() {
-  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized()
-      as IntegrationTestWidgetsFlutterBinding;
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
       'StudyLink main journey renders screens and captures Android evidence',
